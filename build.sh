@@ -55,46 +55,40 @@ fi
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR" || exit 1
 
-# ---- Configure (only if not already configured) ----
-if [ ! -f "CMakeCache.txt" ]; then
-    echo -e "${YELLOW}Configuring...${NC}"
+echo -e "${YELLOW}Configuring...${NC}"
 
-    if [ "$IS_ANDROID" = true ]; then
-        if [ -z "$QT_HOST_PATH" ]; then export QT_HOST_PATH="$HOME/Qt/6.10.2/gcc_64"; fi
-        if [ -z "$ANDROID_NDK" ];   then export ANDROID_NDK="$HOME/Android/Sdk/ndk/28.2.13676358"; fi
-        if [ -z "$ANDROID_SDK_ROOT" ]; then export ANDROID_SDK_ROOT="$HOME/Android/Sdk"; fi
+if [ "$IS_ANDROID" = true ]; then
+    if [ -z "$QT_HOST_PATH" ]; then export QT_HOST_PATH="$HOME/Qt/6.10.2/gcc_64"; fi
+    if [ -z "$ANDROID_NDK" ];   then export ANDROID_NDK="$HOME/Android/Sdk/ndk/28.2.13676358"; fi
+    if [ -z "$ANDROID_SDK_ROOT" ]; then export ANDROID_SDK_ROOT="$HOME/Android/Sdk"; fi
 
-        if [ ! -d "$ANDROID_NDK" ]; then echo -e "${RED}NDK not found: $ANDROID_NDK${NC}"; exit 1; fi
+    if [ ! -d "$ANDROID_NDK" ]; then echo -e "${RED}NDK not found: $ANDROID_NDK${NC}"; exit 1; fi 
 
-        if [ -z "$QT_ANDROID_KEYSTORE_PATH" ];      then export QT_ANDROID_KEYSTORE_PATH="$HOME/.android/debug.keystore"; fi
-        if [ -z "$QT_ANDROID_KEYSTORE_ALIAS" ];     then export QT_ANDROID_KEYSTORE_ALIAS="androiddebugkey"; fi
-        if [ -z "$QT_ANDROID_KEYSTORE_STORE_PASS" ]; then export QT_ANDROID_KEYSTORE_STORE_PASS="android"; fi
-        if [ -z "$QT_ANDROID_KEYSTORE_KEY_PASS" ];  then export QT_ANDROID_KEYSTORE_KEY_PASS="android"; fi
+    export QT_ANDROID_KEYSTORE_PATH="${QT_ANDROID_KEYSTORE_PATH:-$HOME/.android/debug.keystore}"
+    export QT_ANDROID_KEYSTORE_ALIAS="${QT_ANDROID_KEYSTORE_ALIAS:-androiddebugkey}"
+    export QT_ANDROID_KEYSTORE_STORE_PASS="${QT_ANDROID_KEYSTORE_STORE_PASS:-android}"
+    export QT_ANDROID_KEYSTORE_KEY_PASS="${QT_ANDROID_KEYSTORE_KEY_PASS:-android}"
 
-        cmake \
-            -DANDROID=ON \
-            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
-            -DANDROID_ABI=arm64-v8a \
-            -DANDROID_PLATFORM=android-24 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DQT_HOST_PATH="$QT_HOST_PATH" \
-            -DANDROID_SDK_ROOT="$ANDROID_SDK_ROOT" \
-            -DQT_ANDROID_SIGN_APK=ON \
-            ../.. || exit 1
-    else
-        cmake \
-            -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            ../.. || exit 1
-    fi
+    cmake \
+        -DANDROID=ON \
+        -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
+        -DANDROID_ABI=arm64-v8a \
+        -DANDROID_PLATFORM=android-24 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DQT_HOST_PATH="$QT_HOST_PATH" \
+        -DANDROID_SDK_ROOT="$ANDROID_SDK_ROOT" \
+        -DQT_ANDROID_SIGN_APK=ON \
+        ../.. || exit 1
 else
-    echo -e "${GREEN}Already configured — skipping cmake configure${NC}"
-    echo -e "${GREEN}(CMakeLists.txt changes are picked up automatically by cmake --build)${NC}"
+    cmake \
+        -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+        ../.. || exit 1
 fi
 
 # ---- Build ----
 echo -e "${YELLOW}Building...${NC}"
-cmake --build . -j$(nproc) || exit 1
+cmake --build . --target all -j$(nproc) || exit 1
 cd - > /dev/null
 
 # ---- Output ----

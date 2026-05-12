@@ -1,0 +1,5 @@
+.cache
+.qmlls.ini
+build
+exec
+compile_commands.json
