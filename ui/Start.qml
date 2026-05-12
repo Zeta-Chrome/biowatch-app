@@ -6,7 +6,7 @@ import BWApp
 Rectangle {
     id: shellRoot
     anchors.fill: parent
-    color: "#050505"
+    color: Theme.bg 
 
     function navigateTo(pageName) {
         var current = stackView.currentItem;

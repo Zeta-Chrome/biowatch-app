@@ -1,12 +1,13 @@
 import QtQuick
 import QtQuick.Effects
+import BWApp
 
 Rectangle {
     id: root
     anchors.fill: parent
     color: "black"
 
-    property color logoColor: "#c0c0c0"
+    property color logoColor: Theme.splash 
     signal finished();
 
     Rectangle {
@@ -15,7 +16,7 @@ Rectangle {
         width: parent.width * 2.5
         height: width
         radius: width / 2
-        color: "#c0c0c0" 
+        color: Theme.splash 
         scale: 1
 
         NumberAnimation on scale {
@@ -33,7 +34,6 @@ Rectangle {
         spacing: 15
         opacity: 1
 
-        // FIX 1: Give the Item a size so the Column can space it correctly
         Item {
             width: 100
             height: 100
@@ -75,8 +75,8 @@ Rectangle {
         ColorAnimation {
             target: root
             property: "logoColor"
-            from: root.logoColor 
-            to: "black"
+            from: Theme.splash 
+            to: Theme.bg
             duration: 1000
         }
 

@@ -30,7 +30,7 @@ Rectangle {
                 property: "scale"
                 from: 1
                 to: 150
-                duration: 750
+                duration: 500 
                 easing.type: Easing.InQuart
             }
             NumberAnimation {

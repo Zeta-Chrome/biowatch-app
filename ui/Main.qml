@@ -1,12 +1,13 @@
 import QtQuick
 import QtQuick.Controls
+import BWApp
 
 ApplicationWindow {
     id: root
     width: 640
     height: 480
     visible: true
-    color: "black"
+    color: Theme.bg
     title: qsTr("BWApp")
 
     Loader {
@@ -16,10 +17,10 @@ ApplicationWindow {
     }
 
     Connections {
-        target: appLoader.item 
+        target: appLoader.item
         ignoreUnknownSignals: true
         function onFinished() {
-            appLoader.source = "Start.qml"
+            appLoader.source = "Start.qml";
         }
     }
 }
