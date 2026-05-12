@@ -155,10 +155,10 @@ Rectangle {
 
             IconButton {
                 id: batteryLevel
-                iconSource: "qrc:/qt/qml/BWApp/assets/images/battery_level.svg"
+                iconSource: "qrc:/qt/qml/BWApp/assets/images/battery_health.svg"
                 buttonRadius: 0.2
                 iconColor: "#64b464"
-                dashboard: "BatteryLevel.qml"
+                dashboard: "BatteryHealth.qml"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 onClicked: root.onClickAnimate(batteryLevel)

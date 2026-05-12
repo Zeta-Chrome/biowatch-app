@@ -7,5 +7,5 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    property string pageTitle: "Battery Level"
+    property string pageTitle: "Battery Health"
 }
