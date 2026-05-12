@@ -58,7 +58,7 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/include/biowatch_app
 )
 
-set_source_files_properties(ui/Style.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(ui/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt6_add_qml_module(${EXECUTABLE_NAME}
     URI "BWApp"
