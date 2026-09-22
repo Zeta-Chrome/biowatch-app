@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import BWApp
 
 Rectangle {
     id: root
@@ -7,5 +8,5 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    property string pageTitle: "Steps"
+    property string pageTitle: "Battery Level"
 }

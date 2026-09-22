@@ -22,7 +22,7 @@ Rectangle {
         NumberAnimation on scale {
             from: 1.0
             to: 0.25
-            duration: 1200
+            duration: 800
             easing.type: Easing.InOutQuart
             running: true
         }

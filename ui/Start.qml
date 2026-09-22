@@ -34,7 +34,8 @@ Rectangle {
             iconSource: {
                 var item = stackView.currentItem;
                 var isHome = item && item.dashboard && item.dashboard.includes("Home");
-                return isHome ? "qrc:/qt/qml/BWApp/assets/images/info.svg" : "qrc:/qt/qml/BWApp/assets/images/home.svg";
+                return isHome ? "qrc:/qt/qml/BWApp/assets/images/settings.svg" :
+                    "qrc:/qt/qml/BWApp/assets/images/home.svg";
             }
             buttonRadius: 0.2
             iconColor: "#666666"
@@ -44,7 +45,7 @@ Rectangle {
                 var item = stackView.currentItem;
                 var isHome = item && item.dashboard && item.dashboard.includes("Home");
                 if (isHome) {
-                    shellRoot.navigateTo("Info.qml");
+                    shellRoot.navigateTo("Settings.qml");
                 } else {
                     shellRoot.navigateTo("Home.qml");
                 }
@@ -62,13 +63,26 @@ Rectangle {
         }
 
         IconButton {
-            id: settingsButton
-            iconSource: "qrc:/qt/qml/BWApp/assets/images/settings.svg"
+            id: bleButton
+            iconSource: "qrc:/qt/qml/BWApp/assets/images/ble.svg"
             buttonRadius: 0.2
-            iconColor: "#666666"
+            // Idle=0 gray, Scanning=1/Connecting=2 green+blink, Connected=3 solid green,
+            // Error=4 red, PermissionDenied=5 amber
+            iconColor: {
+                switch (appManager.ble.connectionState) {
+                    case 3: return "#3ecf6b"  // Connected
+                    case 1:
+                    case 2: return "#3ecf6b"  // Scanning / Connecting (blinking)
+                    case 4: return "#d64545"  // Error
+                    case 5: return "#d6a94c"  // PermissionDenied
+                    default: return "#666666" // Idle
+                }
+            }
+            blinking: appManager.ble.connectionState === 1 || appManager.ble.connectionState === 2
+            blinkDurationMs: appManager.ble.connectionState === 2 ? 350 : 700
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
-            onClicked: shellRoot.navigateTo("Settings.qml")
+            onClicked: shellRoot.navigateTo("Ble.qml")
         }
     }
 

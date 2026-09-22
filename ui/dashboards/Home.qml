@@ -11,57 +11,41 @@ Rectangle {
     property string dashboard: "Home"
     property string pageTitle: "Today's Stats"
 
+    property int steps: 0
+    property real calories: 0
+    property real heartRate: 0
+
     signal navigateRequested(string pageName)
 
-    Rectangle {
-        id: growCircle
-        width: 10
-        height: 10
-        radius: 5
-        opacity: 0
-        visible: false
-        z: 999
-        property string targetPage: ""
+    function refresh() {
+        var act = appManager.repository.getLatestActivity()
+        steps = act.steps !== undefined ? act.steps : 0
+        calories = act.calories_kcal !== undefined ? act.calories_kcal : 0
 
-        ParallelAnimation {
-            id: growAnim
-            NumberAnimation {
-                target: growCircle
-                property: "scale"
-                from: 1
-                to: 150
-                duration: 500 
-                easing.type: Easing.InQuart
-            }
-            NumberAnimation {
-                target: growCircle
-                property: "opacity"
-                from: 0.5
-                to: 1.0
-                duration: 250
-            }
-            onFinished: {
-                root.navigateRequested(growCircle.targetPage);  // ← CHANGED
-                growCircle.visible = false;
-                growCircle.scale = 1;
-            }
-        }
+        var hr = appManager.repository.getLatestVital(0) // VITALS_HR
+        root.heartRate = hr.value !== undefined ? hr.value : 0
     }
 
-    function onClickAnimate(targetItem) {
-        var globalPos = targetItem.mapToItem(root, targetItem.width / 2, targetItem.height / 2);
-        growCircle.x = globalPos.x - growCircle.width / 2;
-        growCircle.y = globalPos.y - growCircle.height / 2;
-        growCircle.color = targetItem.iconColor;
-        growCircle.targetPage = targetItem.dashboard;
-        growCircle.visible = true;
-        growAnim.restart();
+    Component.onCompleted: refresh()
+
+    Connections {
+        target: appManager.ble
+        function onActivityUpdated() {
+            var latest = appManager.repository.getLatestActivity()
+            root.steps = latest.steps
+            root.calories = latest.calories_kcal
+        }
+        function onVitalsUpdated(type) {
+            var latest = appManager.repository.getLatestVital(root.vitalsType)
+            if (type === 0)
+                root.heartRate = latest.value || 0
+        }
     }
 
     ColumnLayout {
         anchors.fill: parent
 
-        RowLayout {
+         RowLayout {
             id: infoBar
             Layout.fillWidth: true
             Layout.preferredHeight: parent.height * 0.2
@@ -71,19 +55,19 @@ Rectangle {
 
             StatItem {
                 label: "STEPS"
-                value: "4,281"
+                value: Math.round(root.steps).toString()
                 unit: "st"
                 Layout.fillWidth: true
             }
             StatItem {
                 label: "CALORIES"
-                value: "248"
+                value: Math.round(root.calories).toString()
                 unit: "kcal"
                 Layout.fillWidth: true
             }
             StatItem {
                 label: "HEART"
-                value: "72"
+                value: Math.round(root.heartRate).toString()
                 unit: "bpm"
                 Layout.fillWidth: true
             }
@@ -99,6 +83,17 @@ Rectangle {
             rowSpacing: 20
 
             IconButton {
+                id: activity
+                iconSource: "qrc:/qt/qml/BWApp/assets/images/steps.svg"
+                buttonRadius: 0.2
+                iconColor: "#323264"
+                dashboard: "Activity.qml"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                onClicked: root.navigateRequested(dashboard)
+            }
+
+            IconButton {
                 id: calorie
                 iconSource: "qrc:/qt/qml/BWApp/assets/images/calories.svg"
                 buttonRadius: 0.2
@@ -106,18 +101,7 @@ Rectangle {
                 dashboard: "Calories.qml"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onClicked: root.onClickAnimate(calorie)
-            }
-
-            IconButton {
-                id: steps
-                iconSource: "qrc:/qt/qml/BWApp/assets/images/steps.svg"
-                buttonRadius: 0.2
-                iconColor: "#323264"
-                dashboard: "Steps.qml"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                onClicked: root.onClickAnimate(steps)
+                onClicked: root.navigateRequested(dashboard)
             }
 
             IconButton {
@@ -128,7 +112,7 @@ Rectangle {
                 dashboard: "HeartRate.qml"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onClicked: root.onClickAnimate(heartRate)
+                onClicked: root.navigateRequested(dashboard)
             }
 
             IconButton {
@@ -139,30 +123,31 @@ Rectangle {
                 dashboard: "BloodO2.qml"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onClicked: root.onClickAnimate(bloodO2)
+                onClicked: root.navigateRequested(dashboard)
             }
 
             IconButton {
-                id: weather
+                id: environment
                 iconSource: "qrc:/qt/qml/BWApp/assets/images/weather.svg"
                 buttonRadius: 0.2
                 iconColor: "#787878"
-                dashboard: "Weather.qml"
+                dashboard: "Environment.qml"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onClicked: root.onClickAnimate(weather)
+                onClicked: root.navigateRequested(dashboard)
             }
 
             IconButton {
-                id: batteryLevel
+                id: battery
                 iconSource: "qrc:/qt/qml/BWApp/assets/images/battery_health.svg"
                 buttonRadius: 0.2
-                iconColor: "#64b464"
-                dashboard: "BatteryHealth.qml"
+                iconColor: "#3e6b32"
+                dashboard: "Battery.qml"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onClicked: root.onClickAnimate(batteryLevel)
+                onClicked: root.navigateRequested(dashboard)
             }
+
         }
     }
 }
