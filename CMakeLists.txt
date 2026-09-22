@@ -10,6 +10,7 @@ set(CMAKE_AUTORCC ON)
 set(QT_QML_GENERATE_QMLLS_INI ON)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE BOOL "" FORCE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
 
 # Output directories
 if (ANDROID)
@@ -27,9 +28,10 @@ list(APPEND CMAKE_FIND_ROOT_PATH "${QT_DIR}")
 find_package(Qt6Core)
 find_package(Qt6Gui)
 find_package(Qt6Qml)
+find_package(Qt6Sql)
 find_package(Qt6Quick)
 find_package(Qt6Multimedia)
-find_package(Qt6Concurrent)
+find_package(Qt6Bluetooth)
 
 # Recursively find all source files
 file(GLOB_RECURSE SOURCES
@@ -74,9 +76,10 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
+    Qt6::Sql
     Qt6::Quick
     Qt6::Multimedia
-    Qt6::Concurrent
+    Qt6::Bluetooth
 )
 
 # Android specific configuration
