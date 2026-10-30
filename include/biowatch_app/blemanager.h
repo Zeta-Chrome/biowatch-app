@@ -6,18 +6,21 @@
 #include <QLowEnergyService>
 #include <QVariantMap>
 #include <memory>
+#include <qqmlintegration.h>
 
 class Repository;
 
 class BleManager : public QObject {
 	Q_OBJECT
+	QML_ELEMENT
+	QML_UNCREATABLE("BleManager is provided from C++")
 
 	Q_PROPERTY(ConnectionState connectionState READ connectionState NOTIFY connectionStateChanged)
 	Q_PROPERTY(QString statusText READ statusText NOTIFY connectionStateChanged)
 	Q_PROPERTY(QString deviceName READ deviceName NOTIFY deviceNameChanged)
 
 public:
-	enum ConnectionState : uint8_t { Idle, Scanning, Connecting, Connected, Error };
+	enum ConnectionState : uint8_t { IDLE, SCANNING, CONNECTING, CONNECTED, ERROR };
 	Q_ENUM(ConnectionState)
 
 	explicit BleManager(Repository *repository, QObject *parent = nullptr);
@@ -78,7 +81,7 @@ private:
 	QList<QLowEnergyService *> m_activeServices;
 	QLowEnergyService *m_settingsService{ nullptr };
 
-	ConnectionState m_state{ Idle };
+	ConnectionState m_state{ IDLE };
 	QString m_deviceName;
 
 	int m_pendingHeightCm{ -1 };

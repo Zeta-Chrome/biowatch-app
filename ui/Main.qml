@@ -4,8 +4,8 @@ import BWApp
 
 ApplicationWindow {
     id: root
-    width: 640
-    height: 480
+    width: 448
+    height: 896
     visible: true
     color: Theme.bg
     title: qsTr("BWApp")

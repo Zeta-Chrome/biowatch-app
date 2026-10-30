@@ -7,6 +7,7 @@
 #include <QLowEnergyDescriptor>
 #include <QDateTime>
 #include <QDebug>
+#include <QTimer>
 #include <cstring>
 
 namespace
@@ -40,15 +41,15 @@ BleManager::~BleManager() = default;
 QString BleManager::statusText() const
 {
 	switch (m_state) {
-	case Idle:
+	case IDLE:
 		return QStringLiteral("Not connected");
-	case Scanning:
+	case SCANNING:
 		return QStringLiteral("Scanning for BioWatch…");
-	case Connecting:
+	case CONNECTING:
 		return QStringLiteral("Connecting…");
-	case Connected:
+	case CONNECTED:
 		return QStringLiteral("Connected to %1").arg(m_deviceName);
-	case Error:
+	case ERROR:
 		return QStringLiteral("Connection error");
 	}
 	return {};
@@ -70,7 +71,7 @@ void BleManager::cleanupServices()
 
 void BleManager::scanAndConnect()
 {
-	if (m_state == Scanning || m_state == Connecting || m_state == Connected)
+	if (m_state == SCANNING || m_state == CONNECTING || m_state == CONNECTED)
 		return;
 
 	checkPermissionsAndScan();
@@ -94,16 +95,16 @@ void BleManager::checkPermissionsAndScan()
 				this->startScanning();
 			} else {
 				qWarning() << "Bluetooth permission denied by user.";
-				this->setState(Error);
-				this->setState(Idle);
+				this->setState(ERROR);
+				this->setState(IDLE);
 			}
 		});
 		break;
 
 	case Qt::PermissionStatus::Denied:
 		qWarning() << "Bluetooth permission was previously denied.";
-		setState(Error);
-		setState(Idle);
+		setState(ERROR);
+		setState(IDLE);
 		break;
 	}
 #else
@@ -116,7 +117,7 @@ void BleManager::startScanning()
 	cleanupServices();
 	m_controller.reset();
 
-	setState(Scanning);
+	setState(SCANNING);
 	m_discovery->setLowEnergyDiscoveryTimeout(15000);
 	m_discovery->start(QBluetoothDeviceDiscoveryAgent::LowEnergyMethod);
 }
@@ -129,7 +130,7 @@ void BleManager::onDeviceDiscovered(const QBluetoothDeviceInfo &info)
 	m_discovery->stop();
 	m_deviceName = info.name();
 	emit deviceNameChanged();
-	setState(Connecting);
+	setState(CONNECTING);
 
 	cleanupServices();
 	m_controller.reset(QLowEnergyController::createCentral(info, this));
@@ -147,10 +148,10 @@ void BleManager::onDeviceDiscovered(const QBluetoothDeviceInfo &info)
 
 void BleManager::onDiscoveryFinished()
 {
-	if (m_state == Scanning) {
+	if (m_state == SCANNING) {
 		// Timed out without finding peripheral
-		setState(Error);
-		setState(Idle);
+		setState(ERROR);
+		setState(IDLE);
 	}
 }
 
@@ -158,19 +159,23 @@ void BleManager::onDiscoveryError(QBluetoothDeviceDiscoveryAgent::Error error)
 {
 	Q_UNUSED(error);
 	qWarning() << "BLE discovery error:" << m_discovery->errorString();
-	setState(Error);
-	setState(Idle);
+	setState(ERROR);
+	setState(IDLE);
 }
 
 void BleManager::onControllerConnected()
 {
-	m_controller->discoverServices();
+	// Give BlueZ a moment to settle the connection before asking for services.
+	QTimer::singleShot(500, this, [this]() {
+		if (m_controller && m_state == CONNECTING)
+			m_controller->discoverServices();
+	});
 }
 
 void BleManager::onControllerDisconnected()
 {
 	cleanupServices();
-	setState(Idle);
+	setState(IDLE);
 }
 
 void BleManager::onControllerError(QLowEnergyController::Error error)
@@ -179,8 +184,8 @@ void BleManager::onControllerError(QLowEnergyController::Error error)
 	qWarning()
 		<< "BLE controller error:" << (m_controller ? m_controller->errorString() : "unknown");
 	cleanupServices();
-	setState(Error);
-	setState(Idle);
+	setState(ERROR);
+	setState(IDLE);
 }
 
 void BleManager::onServiceDiscoveryFinished()
@@ -234,11 +239,9 @@ void BleManager::onServiceStateChanged(QLowEnergyService::ServiceState state)
 		}
 	}
 
-	if (allReady) {
-		setState(Connected);
-		syncTime();
-		flushPendingSettingsWrites();
-	}
+	setState(CONNECTED);
+	// syncTime();
+	// flushPendingSettingsWrites();
 }
 
 void BleManager::setupService(QLowEnergyService *service)
@@ -344,7 +347,7 @@ void BleManager::writeWeightKg(double kg)
 
 void BleManager::flushPendingSettingsWrites()
 {
-	if (m_state != Connected || !m_settingsService)
+	if (m_state != CONNECTED || !m_settingsService)
 		return;
 
 	if (m_pendingHeightCm >= 0) {
@@ -375,5 +378,5 @@ void BleManager::disconnectDevice()
 	if (m_controller)
 		m_controller->disconnectFromDevice();
 	else
-		setState(Idle);
+		setState(IDLE);
 }
